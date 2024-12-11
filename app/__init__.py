@@ -23,15 +23,15 @@ def create_app():
         raise RuntimeError(f"Error al inicializar extensiones: {e}")
 
     try:
-        from app.routes import compra
-        app.register_blueprint(compra, url_prefix='/api/v1')
+        from app.routes import Producto
+        app.register_blueprint(Producto, url_prefix='/api/v1')
     except Exception as e:
         raise RuntimeError(f"Error al registrar blueprints: {e}")
 
     # Ruta de prueba
     @app.route('/ping', methods=['GET'])
     def ping():
-        return {"message": "El servicio de compras está en funcionamiento"}
+        return {"message": "El servicio de producto está en funcionamiento"}
 
     return app
 
