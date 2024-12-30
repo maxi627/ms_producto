@@ -2,8 +2,10 @@ services:
   ms-producto:
     build:
       context: .
+    image: ms-producto:v1.0
     container_name: producto_service
     environment:
+      - FLASK_ENV=development        #cambiar según el entorno a usar (development/production)
       # Configuración de PostgreSQL
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -23,6 +25,8 @@ services:
       - "5003:5003"
 
     restart: always
+    volumes:
+      - ./src:/app  # Sincroniza tu carpeta local con la del contenedor
 
     networks:
       - red1

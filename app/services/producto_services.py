@@ -4,6 +4,10 @@ from app.repositories import ProductoRepository
 
 repository = ProductoRepository()
 
+
+#TODO: refactorizar
+#TODO: Justificar el cache y revisar o cambiar
+
 class ProductoService:
     def all(self) -> list[Producto]:
         result = cache.get('producto')

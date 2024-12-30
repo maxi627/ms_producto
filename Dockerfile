@@ -2,7 +2,7 @@
 FROM python:3.10-slim-bullseye
 
 # Variables de entorno
-ENV FLASK_ENV=production \
+ENV FLASK_ENV=development \
     PYTHONUNBUFFERED=1 \
     PATH=$PATH:/home/flaskapp/.local/bin
 
