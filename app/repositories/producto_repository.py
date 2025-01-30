@@ -8,9 +8,13 @@ from .repository import Repository_delete, Repository_get, Repository_save
 
 class ProductoRepository(Repository_save, Repository_get, Repository_delete):
     def save(self, entity: Producto) -> Producto:
-        db.session.add(entity)
-        db.session.commit()
-        return entity
+        try:
+            db.session.add(entity)  
+            db.session.commit()  # Confirma la transacción
+            return entity
+        except Exception as e:
+            db.session.rollback()  # Deshace la transacción si hay un error
+            raise e  # Propaga la excepción para manejo externo
 
     def get_all(self) -> List[Producto]:
         return Producto.query.all()
@@ -19,9 +23,13 @@ class ProductoRepository(Repository_save, Repository_get, Repository_delete):
         return Producto.query.get(id)
 
     def delete(self, id: int) -> bool:
-        Producto = self.get_by_id(id)
-        if Producto:
-            db.session.delete(Producto)
-            db.session.commit()
-            return True
-        return False
+        try:
+            producto = self.get_by_id(id)
+            if producto:
+                db.session.delete(producto)  
+                db.session.commit()  
+                return True
+            return False
+        except Exception as e:
+            db.session.rollback()  # Deshace la transacción si hay un error
+            raise e  # Propaga la excepción para manejo externo

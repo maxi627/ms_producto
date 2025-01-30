@@ -9,22 +9,22 @@ service = ProductoService()
 Producto_schema = ProductoSchema()
 response_schema = ResponseSchema()
 
-@Producto.route('/Producto', methods=['GET'])
+@Producto.route('/producto', methods=['GET'])
 def all():
     response_builder = ResponseBuilder()
     try:
-        data = Producto_schema.dump(service.get_all(), many=True)
+        data = Producto_schema.dump(service.all(), many=True)
         response_builder.add_message("Productos found").add_status_code(200).add_data(data)
         return response_schema.dump(response_builder.build()), 200
     except Exception as e:
         response_builder.add_message("Error fetching Productos").add_status_code(500).add_data(str(e))
         return response_schema.dump(response_builder.build()), 500
 
-@Producto.route('/Producto/<int:id>', methods=['GET'])
-def one(id):
+@Producto.route('/producto/<int:id>', methods=['GET'])
+def find(id):
     response_builder = ResponseBuilder()
     try:
-        data = service.get_by_id(id)
+        data = service.find(id)
         if data:
             serialized_data = Producto_schema.dump(data)
             response_builder.add_message("Producto found").add_status_code(200).add_data(serialized_data)
@@ -36,12 +36,12 @@ def one(id):
         response_builder.add_message("Error fetching Producto").add_status_code(500).add_data(str(e))
         return response_schema.dump(response_builder.build()), 500
 
-@Producto.route('/Producto', methods=['POST'])
-def create():
+@Producto.route('/producto', methods=['POST'])
+def add():
     response_builder = ResponseBuilder()
     try:
         producto = Producto_schema.load(request.json)
-        data = Producto_schema.dump(service.create(producto))
+        data = Producto_schema.dump(service.add(producto))
         response_builder.add_message("Producto created").add_status_code(201).add_data(data)
         return response_schema.dump(response_builder.build()), 201
     except ValidationError as err:
@@ -51,10 +51,14 @@ def create():
         response_builder.add_message("Error creating Producto").add_status_code(500).add_data(str(e))
         return response_schema.dump(response_builder.build()), 500
 
-@Producto.route('/Producto/<int:id>', methods=['PUT'])
+
+@Producto.route('/producto/<int:id>', methods=['PUT'])
 def update(id):
     response_builder = ResponseBuilder()
     try:
+        if not service.find(id):
+            response_builder.add_message("Producto not found").add_status_code(404).add_data({'id': id})
+            return response_schema.dump(response_builder.build()), 404
         producto = Producto_schema.load(request.json)
         data = Producto_schema.dump(service.update(id, producto))
         response_builder.add_message("Producto updated").add_status_code(200).add_data(data)
@@ -66,7 +70,7 @@ def update(id):
         response_builder.add_message("Error updating Producto").add_status_code(500).add_data(str(e))
         return response_schema.dump(response_builder.build()), 500
 
-@Producto.route('/Producto/<int:id>', methods=['DELETE'])
+@Producto.route('/producto/<int:id>', methods=['DELETE'])
 def delete(id):
     response_builder = ResponseBuilder()
     try:

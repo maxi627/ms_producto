@@ -12,7 +12,6 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_HOST=ecomercedb
       - POSTGRES_PORT=${POSTGRES_PORT}
-
       # Configuración de Redis
       - REDIS_HOST=${REDIS_HOST}  # Nombre del contenedor Redis
       - REDIS_PORT=${REDIS_PORT}
