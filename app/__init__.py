@@ -5,11 +5,18 @@ from flask_sqlalchemy import SQLAlchemy
 from app.config import cache_config, factory
 import redis
 import logging
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 # Configuración de logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Inicializar el limitador
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["10 per minute"]  # Límite global para todo el microservicio
+)
 
 # Instancia global de extensiones
 db = SQLAlchemy()
@@ -48,7 +55,8 @@ def create_app():
 
     try:
         db.init_app(app)
-        cache.init_app(app, config=cache_config) 
+        cache.init_app(app, config=cache_config)
+        limiter.init_app(app)  # Inicializa el limitador con la aplicación
     except Exception as e:
         raise RuntimeError(f"Error al inicializar extensiones: {e}")
 

@@ -1,19 +1,29 @@
 from flask import Blueprint, request
 from marshmallow import ValidationError
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 from app.mapping import ProductoSchema, ResponseSchema
 from app.services import ProductoService, ResponseBuilder
 
 Producto = Blueprint('Producto', __name__)
 service = ProductoService()
-Producto_schema = ProductoSchema()
+producto_schema = ProductoSchema()
 response_schema = ResponseSchema()
 
+# Inicializar el limitador
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["10 per minute"]  # Límite global para el microservicio
+)
+
+# Aplicar limitadores específicos en las rutas
 @Producto.route('/producto', methods=['GET'])
+@limiter.limit("5 per minute")  # Límite específico para esta ruta
 def all():
     response_builder = ResponseBuilder()
     try:
-        data = Producto_schema.dump(service.all(), many=True)
+        data = producto_schema.dump(service.all(), many=True)
         response_builder.add_message("Productos found").add_status_code(200).add_data(data)
         return response_schema.dump(response_builder.build()), 200
     except Exception as e:
@@ -21,12 +31,13 @@ def all():
         return response_schema.dump(response_builder.build()), 500
 
 @Producto.route('/producto/<int:id>', methods=['GET'])
+@limiter.limit("5 per minute")
 def find(id):
     response_builder = ResponseBuilder()
     try:
         data = service.find(id)
         if data:
-            serialized_data = Producto_schema.dump(data)
+            serialized_data = producto_schema.dump(data)
             response_builder.add_message("Producto found").add_status_code(200).add_data(serialized_data)
             return response_schema.dump(response_builder.build()), 200
         else:
@@ -37,11 +48,16 @@ def find(id):
         return response_schema.dump(response_builder.build()), 500
 
 @Producto.route('/producto', methods=['POST'])
+@limiter.limit("5 per minute")
 def add():
     response_builder = ResponseBuilder()
     try:
-        producto = Producto_schema.load(request.json)
-        data = Producto_schema.dump(service.add(producto))
+        json_data = request.json
+        if not json_data:
+            raise ValidationError("No data provided")
+
+        producto = producto_schema.load(json_data)
+        data = producto_schema.dump(service.add(producto))
         response_builder.add_message("Producto created").add_status_code(201).add_data(data)
         return response_schema.dump(response_builder.build()), 201
     except ValidationError as err:
@@ -51,16 +67,21 @@ def add():
         response_builder.add_message("Error creating Producto").add_status_code(500).add_data(str(e))
         return response_schema.dump(response_builder.build()), 500
 
-
 @Producto.route('/producto/<int:id>', methods=['PUT'])
+@limiter.limit("5 per minute")
 def update(id):
     response_builder = ResponseBuilder()
     try:
         if not service.find(id):
             response_builder.add_message("Producto not found").add_status_code(404).add_data({'id': id})
             return response_schema.dump(response_builder.build()), 404
-        producto = Producto_schema.load(request.json)
-        data = Producto_schema.dump(service.update(id, producto))
+
+        json_data = request.json
+        if not json_data:
+            raise ValidationError("No data provided")
+
+        producto = producto_schema.load(json_data)
+        data = producto_schema.dump(service.update(id, producto))
         response_builder.add_message("Producto updated").add_status_code(200).add_data(data)
         return response_schema.dump(response_builder.build()), 200
     except ValidationError as err:
@@ -71,6 +92,7 @@ def update(id):
         return response_schema.dump(response_builder.build()), 500
 
 @Producto.route('/producto/<int:id>', methods=['DELETE'])
+@limiter.limit("3 per minute")  # Menos llamadas permitidas para eliminar
 def delete(id):
     response_builder = ResponseBuilder()
     try:
