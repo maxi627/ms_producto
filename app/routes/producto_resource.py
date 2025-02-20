@@ -1,8 +1,6 @@
 from flask import Blueprint, request
 from marshmallow import ValidationError
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-
+from app import limiter
 from app.mapping import ProductoSchema, ResponseSchema
 from app.services import ProductoService, ResponseBuilder
 
@@ -10,12 +8,6 @@ Producto = Blueprint('Producto', __name__)
 service = ProductoService()
 producto_schema = ProductoSchema()
 response_schema = ResponseSchema()
-
-# Inicializar el limitador
-limiter = Limiter(
-    key_func=get_remote_address,
-    default_limits=["10 per minute"]  # Límite global para el microservicio
-)
 
 # Aplicar limitadores específicos en las rutas
 @Producto.route('/producto', methods=['GET'])

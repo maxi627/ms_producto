@@ -12,11 +12,7 @@ from flask_limiter.util import get_remote_address
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Inicializar el limitador
-limiter = Limiter(
-    key_func=get_remote_address,
-    default_limits=["10 per minute"]  # Límite global para todo el microservicio
-)
+
 
 # Instancia global de extensiones
 db = SQLAlchemy()
@@ -28,6 +24,9 @@ redis_port = int(os.getenv('REDIS_PORT', 6379))
 redis_password = os.getenv('REDIS_PASSWORD', '')
 redis_db = int(os.getenv('REDIS_DB', 0))
 
+# URI de Redis para Flask-Limiter
+redis_uri = f"redis://{redis_host}:{redis_port}/{redis_db}"
+
 # Crear una instancia de Redis
 redis_client = redis.StrictRedis(
     host=redis_host,
@@ -35,6 +34,13 @@ redis_client = redis.StrictRedis(
     db=redis_db,
     password=redis_password,
     decode_responses=True
+)
+
+# Inicializar el limitador con Redis como backend
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["10 per minute"],
+    storage_uri=redis_uri  # ✅ Pasar la URI en lugar de la instancia de Redis
 )
 
 # Verificar la conexión
