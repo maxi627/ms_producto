@@ -25,7 +25,7 @@ redis_password = os.getenv('REDIS_PASSWORD', '')
 redis_db = int(os.getenv('REDIS_DB', 0))
 
 # URI de Redis para Flask-Limiter
-redis_uri = f"redis://{redis_host}:{redis_port}/{redis_db}"
+redis_uri = f"redis://:{redis_password}@{redis_host}:{redis_port}/{redis_db}"
 
 # Crear una instancia de Redis
 redis_client = redis.StrictRedis(

@@ -1,11 +1,12 @@
 services:
+
   ms-producto:
     build:
       context: .
     image: ms-producto:v1.0
     container_name: producto_service
     environment:
-      - FLASK_ENV=development        #cambiar según el entorno a usar (development/production)
+      - FLASK_ENV=${FLASK_ENV}  # cambiar según el entorno a usar (development/production)
       # Configuración de PostgreSQL
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -16,20 +17,20 @@ services:
       - REDIS_HOST=${REDIS_HOST}  # Nombre del contenedor Redis
       - REDIS_PORT=${REDIS_PORT}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
-
     env_file:
       - .env
-
-    ports:
-      - "5003:5003"
-
     restart: always
     volumes:
       - ./src:/app  # Sincroniza tu carpeta local con la del contenedor
-
     networks:
       - red1
+    ports:
+      - "5003:5003"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ms-producto.rule=Host(`producto.localhost`) && PathPrefix(`/api/v1`)"
+      - "traefik.http.services.ms-producto.loadbalancer.server.port=5003"
 
 networks:
   red1:
-    external: true  # Usa la red compartida para la base de datos y redis
+    external: true  # Usa la red compartida para la base de datos y Redis
