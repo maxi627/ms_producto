@@ -24,13 +24,12 @@ services:
       - ./src:/app  # Sincroniza tu carpeta local con la del contenedor
     networks:
       - red1
-    ports:
-      - "5003:5003"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.ms-producto.rule=Host(`producto.localhost`) && PathPrefix(`/api/v1`)"
       - "traefik.http.services.ms-producto.loadbalancer.server.port=5003"
-
+    deploy: 
+      replicas: 1  # Número de instancias que deseas
 networks:
   red1:
     external: true  # Usa la red compartida para la base de datos y Redis
